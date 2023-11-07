@@ -1,0 +1,37 @@
+
+zotu <- read.csv("OTU_combine.csv",header = T,row.names = 1)
+zg <- read.csv("G_OTU_combine1111.csv",header = T,row.names = 1)
+
+
+
+library(vegan)
+library(ggplot2)
+library(colorRamps)
+library(ape)
+library(umap)
+library(plyr)
+library(plotly)
+
+fung.pc<-pcoa(vegdist(decostand(zotu,"hellinger"),"bray"))
+pc1=round(fung.pc$values$Relative_eig[1], 3)*100
+pc2=round(fung.pc$values$Relative_eig[2], 3)*100
+pc = as.data.frame(fung.pc$vectors)
+zg$Treat<-factor(zg$Treat, levels=c("Control", "Pre_flowering_drought", "Post_flowering_drought"))
+zg$Compartment <- factor(zg$Compartment, levels = c("Root", "Rhizosphere", "Soil"))
+
+ggplot(pc,aes(Axis.1,Axis.2,group=zg$Group)) + 
+     geom_point(aes(colour=zg$Treat, alpha=factor(zg$Week),shape=zg$Year),size=2)+ 
+     labs(x = sprintf("PCo1 (%.1f%%)", pc1), y = sprintf("PCo2 (%.1f%%)", pc2))+
+     scale_shape_manual(values=c(15,16,17))+
+     guides(color=guide_legend(title= "Treatment",byrow = T,nrow = 3,title.position = "top",title.hjust = 0.5),alpha=guide_legend(title= "Week",byrow = T,nrow = 3,title.position = "top",title.hjust = 0.5),shape=guide_legend(title="Year",byrow = T,nrow = 3,title.position = "top",title.hjust = 0.5))+facet_grid(.~zg$Compartment)+theme_bw()+
+     scale_color_manual(values=c("#009999","#FFcc00", "#CC3366")) +
+     theme(strip.text = element_text(size = 15,face="bold"),
+           panel.spacing = unit(0, "lines"),
+           legend.title = element_text(colour="black", size=15, face="bold"),
+           legend.text = element_text(colour="black", size=15, face="bold"),
+           axis.text=element_text(size=10,face="bold"),
+           axis.title=element_text(size=15,face="bold"),legend.position = "bottom")
+
+adonis_result_dis <- adonis(zotu~zg$Week*zg$Compartment*zg$Treat*zg$Plottime)
+adonis_result_dis$aov.tab
+ggsave("PCOA.2022.pdf",width = 9, height =5)

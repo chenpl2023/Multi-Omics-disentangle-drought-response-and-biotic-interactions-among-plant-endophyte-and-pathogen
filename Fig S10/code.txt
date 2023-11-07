@@ -1,0 +1,48 @@
+wd<- "E:/博后/高粱转录组微生物组/陈沛霖-病原菌/病原真菌/Y2016.2017.its/ChenPL"
+setwd(wd)
+zotu <- read.csv("OTU_combine.csv",header = T,row.names = 1)
+zg <- read.csv("G_OTU_combine1111.csv",header = T,row.names = 1)
+library(reshape2)
+library(ggplot2)
+library(MASS)
+library(splitstackshape)
+## Warning: 程辑包'splitstackshape'是用R版本4.1.1 来建造的
+library(colorRamps)
+## Warning: 程辑包'colorRamps'是用R版本4.1.1 来建造的
+library(vegan)
+## 载入需要的程辑包：permute
+## 载入需要的程辑包：lattice
+## This is vegan 2.5-7
+total<-apply(zotu, 1, sum); 
+ fung.relabu<-data.frame(lapply(zotu, function(x) {  x / total  }) )
+ fung.L<-fung.relabu
+ fung.L <- fung.L[,order(-colSums(fung.L))]
+ env.L<-zg
+ fung.L.lev<-aggregate(fung.L,by=list(env.L$Groupyear1) , mean)
+ fung.L1<-fung.L.lev[,c(1,2:20)]
+ fung.L1 <- melt(fung.L1,id.vars = "Group.1")
+ fung.L1<-cSplit(fung.L1, "Group.1", "-")
+  names(fung.L1)<-c("Fungi","Relative_Abundance","Compartment","Treat","Week")
+ fung.L2<-fung.L.lev[,c(1,21:ncol(fung.L.lev))]
+ fung.L2 <- melt(fung.L2,id.vars = "Group.1")
+ fung.L2<-cSplit(fung.L2, "Group.1", "-")
+
+ names(fung.L2)<-c("Fungi","Relative_Abundance","Compartment","Treat","Week")
+ fung.L2$Fungi<-"Other"
+ fung.bind<-rbind(fung.L1,fung.L2)
+ fung.bind$Treat<-factor(fung.bind$Treat,levels=c("Control", "Pre_flowering_drought", "Post_flowering_drought"))
+ fung.bind$Compartment<-factor(fung.bind$Compartment,levels=c("Rhizosphere_Y16P1", "Rhizosphere_Y17P1", "Rhizosphere_Y17P2","Root_Y16P1", "Root_Y17P1", "Root_Y17P2","Soil_Y16P1", "Soil_Y17P1", "Soil_Y17P2"))
+ ggplot(fung.bind, aes(x = factor(Week), y = Relative_Abundance, fill=Fungi)) +
+   geom_bar(stat='identity', position = "fill")+  
+   labs(x="Week",y = "Relative abundance")+
+   facet_grid(Compartment~Treat)+scale_fill_manual(values=c(
+     "slateblue1","springgreen","steelblue1","tan1","thistle1","tomato","turquoise", "violet", "red", "yellowgreen",
+     "peachpuff", "peru", "pink", "plum2", "purple","wheat", "cornsilk3","cornsilk","coral4","coral",
+     "chocolate4","chocolate","black","chartreuse4","chartreuse","burlywood4","burlywood","brown4","blue","bisque4","bisque",
+     "azure4","azure","aquamarine4","aquamarine","antiquewhite4","antiquewhite","aliceblue","dodgerblue4","dodgerblue","dimgrey",
+     "deepskyblue4", "deepskyblue", "deeppink4", "deeppink","darkviolet", "darkslategray4","darkslategray",
+     "darkseagreen4", "darkseagreen", "darksalmon", "darkred", "darkorchid4", "darkorchid", "darkorange4",
+     "darkorange","firebrick","darkgreen", "darkgoldenrod4","grey", "darkgoldenrod", "darkcyan")) + theme_bw()+theme(panel.spacing = unit(0, "lines"),legend.position = "right", strip.text.y=element_text(angle = 45))
+
+
+ggsave("Tradeoff_new3.2022.pdf",width = 9, height =9)

@@ -1,0 +1,116 @@
+setwd("E:/博后/高粱转录组微生物组/陈沛霖-病原菌/病原真菌/a最终图/FIG2/mt_mg_content")
+library(reshape2)
+library(dplyr)
+library(tidyr)
+mgmt <- read.csv("MG_MT(otu_average).csv",header = T,row.names = 1)
+mgmt <- mgmt[,c(1,4,12,7,10,11)]
+mt <- mgmt[,c(4,6,1)]
+mt_max <- dcast(data=mt, TP~Group1)
+colnames(mt_max) <- c("TP","MT_CON_B","MT_CON_R","MT_POS_B","MT_POS_R","MT_PRE_B","MT_PRE_R")
+
+mt_max$mt_PRE_CON_R <- mt_max$MT_PRE_R/mt_max$MT_CON_R
+mt_max$mt_POS_CON_R <- mt_max$MT_POS_R/mt_max$MT_CON_R
+mt_max$mt_PRE_CON_B <- mt_max$MT_PRE_B/mt_max$MT_CON_B
+mt_max$mt_POS_CON_B <- mt_max$MT_POS_B/mt_max$MT_CON_B
+
+mt_max$mt_POS_CON_mean <- apply(mt_max[,c(11,9)], 1,mean)
+mt_max$mt_POS_CON_std <- apply(mt_max[,c(11,9)], 1,sd)
+mt_max$mt_PRE_CON_mean <- apply(mt_max[,c(10,8)], 1,mean)
+mt_max$mt_PRE_CON_std <- apply(mt_max[,c(10,8)], 1,sd)
+
+mg <- mgmt[,c(4,6,2)]
+mg_max <- dcast(data=mg, TP~Group1)
+colnames(mg_max) <- c("TP","MG_CON_B","MG_CON_R","MG_POS_B","MG_POS_R","MG_PRE_B","MG_PRE_R")
+
+mg_max$mg_PRE_CON_R <- mg_max$MG_PRE_R/mg_max$MG_CON_R
+mg_max$mg_POS_CON_R <- mg_max$MG_POS_R/mg_max$MG_CON_R
+mg_max$mg_PRE_CON_B <- mg_max$MG_PRE_B/mg_max$MG_CON_B
+mg_max$mg_POS_CON_B <- mg_max$MG_POS_B/mg_max$MG_CON_B
+
+mg_max$mg_POS_CON_mean <- apply(mg_max[,c(11,9)], 1,mean)
+mg_max$mg_POS_CON_std <- apply(mg_max[,c(11,9)], 1,sd)
+mg_max$mg_PRE_CON_mean <- apply(mg_max[,c(10,8)], 1,mean)
+mg_max$mg_PRE_CON_std <- apply(mg_max[,c(10,8)], 1,sd)
+
+otu <- mgmt[,c(4,6,3)]
+otu_max <- dcast(data=otu, TP~Group1)
+colnames(otu_max) <- c("TP","OTU_CON_B","OTU_CON_R","OTU_POS_B","OTU_POS_R","OTU_PRE_B","OTU_PRE_R")
+
+otu_max$otu_PRE_CON_R <- otu_max$OTU_PRE_R/otu_max$OTU_CON_R
+otu_max$otu_POS_CON_R <- otu_max$OTU_POS_R/otu_max$OTU_CON_R
+otu_max$otu_PRE_CON_B <- otu_max$OTU_PRE_B/otu_max$OTU_CON_B
+otu_max$otu_POS_CON_B <- otu_max$OTU_POS_B/otu_max$OTU_CON_B
+
+otu_max$otu_POS_CON_mean <- apply(otu_max[,c(11,9)], 1,mean)
+otu_max$otu_POS_CON_std <- apply(otu_max[,c(11,9)], 1,sd)
+otu_max$otu_PRE_CON_mean <- apply(otu_max[,c(10,8)], 1,mean)
+otu_max$otu_PRE_CON_std <- apply(otu_max[,c(10,8)], 1,sd)
+
+mt_mg_mean_max <- cbind(mg_max, mt_max,otu_max)
+
+mt_mg_mean_max$MTG_CON_B <- mt_mg_mean_max$MT_CON_B/mt_mg_mean_max$MG_CON_B
+mt_mg_mean_max$MTG_CON_R <- mt_mg_mean_max$MT_CON_R/mt_mg_mean_max$MG_CON_R
+mt_mg_mean_max$MTG_POS_B <- mt_mg_mean_max$MT_POS_B/mt_mg_mean_max$MG_POS_B
+mt_mg_mean_max$MTG_POS_R <- mt_mg_mean_max$MT_POS_R/mt_mg_mean_max$MG_POS_R
+mt_mg_mean_max$MTG_PRE_B <- mt_mg_mean_max$MT_PRE_B/mt_mg_mean_max$MG_PRE_B
+mt_mg_mean_max$MTG_PRE_R <- mt_mg_mean_max$MT_PRE_R/mt_mg_mean_max$MG_PRE_R
+mt_mg_mean_max$MTG_PRE_CON_B <- mt_mg_mean_max$MTG_PRE_B/mt_mg_mean_max$MTG_CON_B
+mt_mg_mean_max$MTG_PRE_CON_R <- mt_mg_mean_max$MTG_PRE_R/mt_mg_mean_max$MTG_CON_R
+mt_mg_mean_max$MTG_POS_CON_B <- mt_mg_mean_max$MTG_POS_B/mt_mg_mean_max$MTG_CON_B
+mt_mg_mean_max$MTG_POS_CON_R <- mt_mg_mean_max$MTG_POS_R/mt_mg_mean_max$MTG_CON_R
+
+mt_mg_mean_max$MTG_PRE_CON_mean <- apply(mt_mg_mean_max[,c(52,53)], 1,mean)
+mt_mg_mean_max$MTG_PRE_CON_std <- apply(mt_mg_mean_max[,c(52,53)], 1,sd)
+mt_mg_mean_max$MTG_POS_CON_mean <- apply(mt_mg_mean_max[,c(54,55)], 1,mean)
+mt_mg_mean_max$MTG_POS_CON_std <- apply(mt_mg_mean_max[,c(54,55)], 1,sd)
+
+mt_mg_mean_max$MTG_PRE_CON <- paste(mt_mg_mean_max$MTG_PRE_CON_mean, mt_mg_mean_max$MTG_PRE_CON_std,sep = "_")
+mt_mg_mean_max$MTG_POS_CON <- paste(mt_mg_mean_max$MTG_POS_CON_mean, mt_mg_mean_max$MTG_POS_CON_std,sep = "_")
+mt_mg_mean_max$otu_PRE_CON <- paste(mt_mg_mean_max$otu_PRE_CON_mean, mt_mg_mean_max$otu_PRE_CON_std,sep = "_")
+mt_mg_mean_max$otu_POS_CON <- paste(mt_mg_mean_max$otu_POS_CON_mean, mt_mg_mean_max$otu_POS_CON_std,sep = "_")
+mt_mg_mean_max$mg_PRE_CON <- paste(mt_mg_mean_max$mg_PRE_CON_mean, mt_mg_mean_max$mg_PRE_CON_std,sep = "_")
+mt_mg_mean_max$mg_POS_CON <- paste(mt_mg_mean_max$mg_POS_CON_mean, mt_mg_mean_max$mg_POS_CON_std,sep = "_")
+mt_mg_mean_max$mt_PRE_CON <- paste(mt_mg_mean_max$mt_PRE_CON_mean, mt_mg_mean_max$mt_PRE_CON_std,sep = "_")
+mt_mg_mean_max$mt_POS_CON <- paste(mt_mg_mean_max$mt_POS_CON_mean, mt_mg_mean_max$mt_POS_CON_std,sep = "_")
+
+mt_mg_ratio <- mt_mg_mean_max[,c(1,60,61,62,63,64,65,66,67)]
+mt_mg_ratio_1 <- melt(data=mt_mg_ratio, id.vars = c("TP"),variable.name = "Group", value.name = "value")
+mt_mg_ratio_3 <- mt_mg_ratio_1 %>% separate(Group, c("Type","Treat","Treat2"), "[_]")
+mt_mg_ratio_3 <- mt_mg_ratio_3 %>% separate(value, c("Mean","Sd"), "[_]")
+mt_mg_ratio_3 <- subset(mt_mg_ratio_3, Mean !='NA')
+mt_mg_ratio_3$Mean<-as.numeric(mt_mg_ratio_3$Mean)
+mt_mg_ratio_3$Sd<-as.numeric(mt_mg_ratio_3$Sd)
+
+library(ggplot2)
+library(ggrepel)
+
+mt_mg_ratio_4 <- subset(mt_mg_ratio_3,Type=="mg"|Type=="mt"|Type=="otu")
+
+
+ggplot(data=mt_mg_ratio_4, aes(x=factor(TP),y=Mean,color = Type,shape = Treat)) +geom_point(aes(color = Type,shape = Treat),alpha = 0.7,size=2.5,width = 0.15)+geom_errorbar(aes(x=factor(TP),ymin=`Mean`-`Sd`,
+                                                                                                                                                                                  ymax=`Mean`+`Sd`),
+                                                                                                                                                                              width=0.1)+scale_color_manual(values=c('red','blue','black'))+
+  scale_shape_manual(values=c(17,16))+labs(x="Week",y = "Ratio between Drought and Control")+geom_label_repel(data= subset(mt_mg_ratio_4,TP==8),aes(label = round(Mean,2),segment.color = 'grey35'), size = 3)+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=6),
+                    legend.text = element_text(colour="black", size=6),
+                    axis.text=element_text(size=8,face="bold"),
+                    axis.title=element_text(size=12,face="bold"),legend.position = "bottom")
+
+ggsave("MT_MG_otu5(average)_bar.pdf",width = 4, height =4)
+
+mt_mg_ratio_5 <- subset(mt_mg_ratio_3,Type=="MTG")
+
+ggplot(data=mt_mg_ratio_5, aes(x=factor(TP),y=Mean,shape = Treat)) +geom_point(aes(shape = Treat),size=3,alpha = 0.7,color = 'black' )+geom_errorbar(aes(x=factor(TP),ymin=`Mean`-`Sd`,
+                                                                                                                                                                                  ymax=`Mean`+`Sd`),
+                                                                                                                                                                              width=0.1)+
+    scale_shape_manual(values=c(17,16))+labs(x="Week",y = "Ratio between Drought and Control")+geom_label_repel(data= subset(mt_mg_ratio_5,TP==8),aes(label = round(Mean,2),segment.color = 'grey35',color = 'black'), size = 3)+
+    theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                      panel.spacing = unit(0, "lines"),
+                      legend.title = element_text(colour="black", size=6),
+                      legend.text = element_text(colour="black", size=6),
+                      axis.text=element_text(size=8,face="bold"),
+                      axis.title=element_text(size=12,face="bold"),legend.position = "bottom")
+
+ggsave("MTG_bar.pdf",width = 4, height =4)

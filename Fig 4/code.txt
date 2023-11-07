@@ -1,0 +1,224 @@
+#ethanolamine related gene expression
+
+setwd("E:/陈沛霖-病原菌/病原真菌/a最终图/FIG2/ethanolamine")
+library(reshape2)
+library(ggplot2)
+library(tidyverse)
+library(ggsignif)
+data<-read.csv("ethanolamine.csv", header = T)
+data1 <- data[,-c(2:7)]
+data1 <- gather(data1,key="type",value="value",2:12)
+
+data2 <- data[,c(1:4)]
+
+data1 <- left_join(data1,data2,by='ID')
+
+ggplot(data1,aes(x=Compartment,y=value,fill=Compartment)) + 
+  geom_boxplot()+  geom_signif(comparisons = list(c("Rhizosphere","Soil")),map_signif_level = TRUE,test = t.test,y_position = c(150,30),tip_length = c(0.05,0.4))+  theme_bw()+  
+  scale_fill_manual(values = c("#DE6757","#5B9BD5"))+ 
+  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())+  labs(x="", y="Expression of ethanolamine related gene")+ 
+  theme(strip.text = element_text(size = 15,face="bold"),
+        panel.spacing = unit(0, "lines"),
+        legend.title = element_text(colour="black", size=15, face="bold"),
+        legend.text = element_text(colour="black", size=15, face="bold"),
+        axis.text=element_text(size=10,face="bold"),
+        axis.title=element_text(size=15,face="bold"),title=element_text(size=15,face="bold"),legend.position = "none")
+ggsave("ethanolamine_rhizos_soil.pdf",,width = 6, height =6)
+
+
+data1_rhi <- subset(data1, data1$Compartment=="Rhizosphere")
+
+data_rhi <- subset(data, data$Compartment=="Rhizosphere")
+data_rhi <- data_rhi[which (data_rhi$Total_ethanolamine_express > 0),]
+
+ggplot(data_rhi,aes(Total_ethanolamine_express,Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = 300,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Cumulative expression of ethanolamine related gene",y="Pathogenic fungal relative abundance")
+
+ggsave("ethanolamine_Pathogen.pdf",,width = 6, height =6)
+
+ggplot(data_rhi,aes(Total_ethanolamine_express,Ethanolamine_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = 300,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Cumulative expression of ethanolamine related gene",y="Ethanolamine content")
+
+ggsave("ethanolamine_express_ethanolamine_content.pdf",,width = 6, height =6)
+
+#DE gene
+ setwd("E:/博后/高粱转录组微生物组/陈沛霖-病原菌/病原真菌/fungal-OTU5/Pan-genome/Fig")
+ library(edgeR)
+ library(statmod)
+ countData <- read.csv("metatrans_TPMOTU5.csv",header = T,row.names = 1)
+ colData <- read.csv("metatrans_group.csv",header = T,row.names = 1)
+ group <- as.factor(colData$Group)
+ designMat <- model.matrix(~0+group)
+ colnames(designMat) <- gsub("group", "", colnames(designMat))
+ library(limma)
+ dge <- DGEList(counts =countData)
+ dge <- calcNormFactors(dge)
+ v <- voom(dge, designMat, plot = TRUE, normalize = "quantile")
+ vfit <- lmFit(v, designMat)
+ contrasts = c("POS10","POS11","PRE3","PRE4","PRE8","PRE9","PRE10")
+ contrast.list <- list(
+   POS10 = "z10POS-z10CON",
+   POS11 = "z11POS-z11CON",
+   PRE3 = "z3PRE-z3CON",
+   PRE4 = "z4PRE-z4CON",
+   PRE8 = "z8PRE-z8CON",
+   PRE9 = "z9PRE-z9CON",
+   PRE10 = "z10PRE-z10CON")
+ 
+ 
+
+ fc.list <- vector("list")
+ for(i in contrasts) {
+   fc.list[[paste(i,sep = ".")]] <-  na.omit(topTable(eBayes(contrasts.fit(vfit,makeContrasts(contrasts=contrast.list[[i]], levels = designMat)))),coef=contrast.list[[i]],n=Inf)
+ }
+ fc.df <- plyr::ldply(fc.list, function(x) x)
+ 
+ for(i in contrasts) {
+   fc.list[[paste(i,sep = ".")]] <- cbind(na.omit(topTable(eBayes(contrasts.fit(vfit,makeContrasts(contrasts=contrast.list[[i]], levels = designMat)))),coef=contrast.list[[i]],n=Inf),row.names(na.omit(topTable(eBayes(contrasts.fit(vfit,makeContrasts(contrasts=contrast.list[[i]], levels = designMat)))),coef=contrast.list[[i]],n=Inf)))
+ }
+ 
+ for(i in contrasts) {
+   fc.list[[paste(i,sep = ".")]] <- cbind(topTable(eBayes(contrasts.fit(vfit,makeContrasts(contrasts=contrast.list[[i]], levels = designMat))),coef=contrast.list[[i]],n=Inf),row.names(topTable(eBayes(contrasts.fit(vfit,makeContrasts(contrasts=contrast.list[[i]], levels = designMat))),coef=contrast.list[[i]],n=Inf)))
+ }
+
+ fc.df <- plyr::ldply(fc.list, function(x) x)
+
+pp <- fc.df
+library(ggplot2)
+pp$.id<- factor(pp$.id, levels=c("PRE3","PRE4","PRE8","PRE9","PRE10","POS10","POS11"))
+pp[which(pp$adj.P.Val >= 0.05 | abs(pp$logFC) < 1.5),'sig'] <- 'no diff'
+pp[which(pp$adj.P.Val < 0.05 & pp$logFC <= -1.5),'sig'] <- 'depleted'
+pp[which(pp$adj.P.Val < 0.05 & pp$logFC >= 1.5),'sig'] <- 'enriched'
+pp$sig<-factor(pp$sig,levels = c("no diff","depleted","enriched"))
+
+
+ggplot(pp, aes(x = AveExpr, y = logFC, color = sig,alpha =adj.P.Val)) +
+  geom_point(alpha = 0.6, size = 1) +scale_alpha_manual(values = c(0.1, 0.6), guide = FALSE)+
+  scale_colour_manual(values  = c('red', 'blue', 'gray32'), limits = c('enriched', 'depleted', 'no diff'))+facet_grid(.~pp$.id,scales="free")+labs(x="LogCPM",y = "LogFC")+theme_bw()+
+  theme(panel.grid.major = element_line(colour = NA),text = element_text(size = 10), axis.text.y = element_text(size = 5),legend.position = "bottom")
+
+#GO enrich 
+
+setwd("E:/博后/高粱转录组微生物组/陈沛霖-病原菌/病原真菌/fungal-OTU5/Pan-genome/Fig/go_cog")
+library(topGO)
+library(stringr)
+gene2GO_map<-readMappings("PANGO.map")
+res<-read.csv("UP.csv",header=T)
+genelist<-res$UP
+names(genelist)<-res$gene_id
+genelist <- as.factor(genelist)
+
+Godata_BP<-new("topGOdata",ontology = "BP",allGenes=genelist,annot=annFUN.gene2GO,gene2GO=gene2GO_map)
+resultFis_BP<-runTest(Godata_BP,algorithm = "classic",statistic = "fisher")
+sig.tab_BP <- GenTable(Godata_BP,Fis = resultFis_BP,topNodes=1000)
+sig.tab_BP['Ontology'] <- 'BP'
+
+Godata_MF<-new("topGOdata",ontology = "MF",allGenes=genelist,annot=annFUN.gene2GO,gene2GO=gene2GO_map)
+resultFis_MF<-runTest(Godata_MF,algorithm = "classic",statistic = "fisher")
+sig.tab_MF <- GenTable(Godata_MF,Fis = resultFis_MF,topNodes=1000)
+sig.tab_MF['Ontology'] <- 'MF'
+
+Godata_CC<-new("topGOdata",ontology = "CC",allGenes=genelist,annot=annFUN.gene2GO,gene2GO=gene2GO_map)
+resultFis_CC<-runTest(Godata_CC,algorithm = "classic",statistic = "fisher")
+sig.tab_CC <- GenTable(Godata_CC,Fis = resultFis_CC,topNodes=1000)
+sig.tab_CC['Ontology'] <- 'CC'
+
+sig.tab_ALL <- rbind(sig.tab_BP,sig.tab_MF,sig.tab_CC)
+
+library(reshape2)
+library(dplyr)
+library(ggrepel)
+sig.tab_ALL_0.01 = sig.tab_ALL %>% filter(Fis<0.01)
+library(ggplot2)
+sig.tab_ALL_0.01$Fis <- as.numeric(sig.tab_ALL_0.01$Fis)
+sig.tab_ALL_0.01$bi <- sig.tab_ALL_0.01$Significant/sig.tab_ALL_0.01$Annotated
+
+sig.tab_ALL_0.01$Term <-  str_to_sentence(sig.tab_ALL_0.01$Term)#首字母大写
+
+sig.tab_ALL_0.01$Term <- factor(as.integer(rownames(sig.tab_ALL_0.01)),labels=sig.tab_ALL_0.01$Term)
+
+#定义term颜色
+col_function <- function(x){
+  col <- rep('black', length(x))
+  one <- which(x %in% c('BP'))
+  two <- which(x %in% c('MF'))
+  three <- which(x %in% c('CC'))
+  col[one] <- '#0074b3'
+  col[two] <- '#f47720'
+  col[three] <- '#459943'
+  col
+  }
+
+y_text_color <- col_function(sig.tab_ALL_0.01$Ontology)
+
+ggplot(sig.tab_ALL_0.01,aes(Expected,Term))+geom_point(aes(size=Significant,color=-log10(Fis)))+scale_color_gradient(high="red",low = "blue")+theme_test(base_size = 10,base_rect_size = 1)+labs(x="Expected number significantly up regulated gene",y="", title="Functional enrichment of up regulated genes")+scale_y_discrete(labels = c(sig.tab_ALL_0.01$Term))+geom_text(data=sig.tab_ALL_0.01,aes(label = Significant,size=Significant))+theme(axis.text.y = element_text(color = (y_text_color)),panel.grid.major=element_line(colour="gray85",linetype = "dashed"))
+
+write.csv(sig.tab_ALL_0.01,"up_sig.tab_ALL_0.01.csv")
+ggsave("UP_GOenrich_1.pdf",width = 6, height =5)
+
+
+
+res<-read.csv("DOWN.csv",header=T)
+genelist<-res$DOWN
+names(genelist)<-res$gene_id
+genelist <- as.factor(genelist)
+
+Godata_BP<-new("topGOdata",ontology = "BP",allGenes=genelist,annot=annFUN.gene2GO,gene2GO=gene2GO_map)
+resultFis_BP<-runTest(Godata_BP,algorithm = "classic",statistic = "fisher")
+sig.tab_BP <- GenTable(Godata_BP,Fis = resultFis_BP,topNodes=1000)
+sig.tab_BP['Ontology'] <- 'BP'
+
+Godata_MF<-new("topGOdata",ontology = "MF",allGenes=genelist,annot=annFUN.gene2GO,gene2GO=gene2GO_map)
+resultFis_MF<-runTest(Godata_MF,algorithm = "classic",statistic = "fisher")
+sig.tab_MF <- GenTable(Godata_MF,Fis = resultFis_MF,topNodes=1000)
+sig.tab_MF['Ontology'] <- 'MF'
+
+Godata_CC<-new("topGOdata",ontology = "CC",allGenes=genelist,annot=annFUN.gene2GO,gene2GO=gene2GO_map)
+resultFis_CC<-runTest(Godata_CC,algorithm = "classic",statistic = "fisher")
+sig.tab_CC <- GenTable(Godata_CC,Fis = resultFis_CC,topNodes=1000)
+sig.tab_CC['Ontology'] <- 'CC'
+
+sig.tab_ALL <- rbind(sig.tab_BP,sig.tab_MF,sig.tab_CC)
+
+library(reshape2)
+library(dplyr)
+sig.tab_ALL_0.01 = sig.tab_ALL %>% filter(Fis<0.01)
+library(ggplot2)
+sig.tab_ALL_0.01$Fis <- as.numeric(sig.tab_ALL_0.01$Fis)
+sig.tab_ALL_0.01$bi <- sig.tab_ALL_0.01$Significant/sig.tab_ALL_0.01$Annotated
+
+sig.tab_ALL_0.01$Term <-  str_to_sentence(sig.tab_ALL_0.01$Term)#首字母大写
+
+sig.tab_ALL_0.01$Term <- factor(as.integer(rownames(sig.tab_ALL_0.01)),labels=sig.tab_ALL_0.01$Term)
+
+#定义term颜色
+col_function <- function(x){
+  col <- rep('black', length(x))
+  one <- which(x %in% c('BP'))
+  two <- which(x %in% c('MF'))
+  three <- which(x %in% c('CC'))
+  col[one] <- '#0074b3'
+  col[two] <- '#f47720'
+  col[three] <- '#459943'
+  col
+  }
+
+y_text_color <- col_function(sig.tab_ALL_0.01$Ontology)
+
+ggplot(sig.tab_ALL_0.01,aes(Expected,Term))+geom_point(aes(size=Significant,color=-log10(Fis)))+scale_color_gradient(high="red",low = "blue")+theme_test(base_size = 10,base_rect_size = 1)+labs(x="Expected number significantly up regulated gene",y="", title="Functional enrichment of up regulated genes")+scale_y_discrete(labels = c(sig.tab_ALL_0.01$Term))+geom_text(data=sig.tab_ALL_0.01,aes(label = Significant,size=Significant))+theme(axis.text.y = element_text(color = (y_text_color)),panel.grid.major=element_line(colour="gray85",linetype = "dashed"))
+
+write.csv(sig.tab_ALL_0.01,"down_sig.tab_ALL_0.01.csv")
+ggsave("Down_GOenrich_1.pdf",width = 6, height =20)
+ 

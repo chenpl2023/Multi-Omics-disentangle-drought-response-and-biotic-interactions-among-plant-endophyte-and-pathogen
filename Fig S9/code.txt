@@ -1,0 +1,41 @@
+ setwd(wd)
+ library(ggplot2)
+ library(reshape2)
+ pp <- read.csv("pp.csv",header = T,row.names = 1)
+ 
+ pp$Treatment<- factor(pp$Treatment, levels=c("Control", "Pre_flowering drought", "Post_flowering drought"))
+ pp$Habitat <- factor(pp$Habitat, levels = c("Root", "Rhizosphere", "Soil"))
+ pp$Fungi<-pp$Group
+ pp$Relative_abundance<-pp$Content
+ 
+ pp$FunBa2 <- interaction(pp$Fungi, pp$Batch2)
+ pp$FunBa3 <- interaction(pp$Fungi, pp$Batch3)
+ pp$Fungi <-factor(pp$Fungi, labels = c("A. persicinum [OTU5]", "Plant pathogens"))
+ pp <- pp[pp$Week>0,]
+ 
+  ggplot(data = pp, aes(x = Week,  y = Relative_abundance, group= Fungi)) +
+    geom_point( aes(color=Fungi, shape = Batch3), size = 2, alpha = 0.3)+
+     geom_smooth(se=FALSE,size=3, method="loess", aes(color=Fungi), alpha = 0.8)+
+     scale_linetype_manual(values= c("solid", "dotted", "dashed"))+facet_grid(Habitat~Treatment)+
+     theme_bw()+guides(color=guide_legend(title= "Fungi",byrow = T,nrow = 2,title.position = "top",title.hjust = 0.5),shape=guide_legend(title= "Sample batch",byrow = T,nrow = 1,title.position = "top",title.hjust = 0.5))+
+     scale_color_manual(values=c("blue","red")) +
+     geom_vline(aes(xintercept=8), colour="black", linetype="dashed")+
+     theme(strip.text = element_text(size = 15,face="bold"),
+          panel.spacing = unit(0, "lines"),
+           legend.title = element_text(colour="black", size=15, face="bold"),
+           legend.text = element_text(colour="black", size=15, face="bold"),
+           axis.text=element_text(size=10,face="bold"),
+           axis.title=element_text(size=15,face="bold"),legend.position = "bottom")
+
+ ggplot(data = pp, aes(x = Week,  y = Relative_abundance, group= FunBa3)) +
+     geom_smooth(se=FALSE,size=1, method="loess", aes(color=Fungi, linetype = Batch3))+
+     scale_linetype_manual(values= c("solid", "dotted", "dashed"))+facet_grid(Habitat~Treatment)+
+     theme_bw()+guides(color=guide_legend(title= "Fungi",byrow = T,nrow = 2,title.position = "top",title.hjust = 0.5),linetype=guide_legend(title= "Sample batch",byrow = T,nrow = 1,title.position = "top",title.hjust = 0.5))+
+     scale_color_manual(values=c("blue","red")) +
+     geom_vline(aes(xintercept=8), colour="black", linetype="dashed")+
+     theme(strip.text = element_text(size = 15,face="bold"),
+           panel.spacing = unit(0, "lines"),
+           legend.title = element_text(colour="black", size=15, face="bold"),
+          legend.text = element_text(colour="black", size=15, face="bold"),
+           axis.text=element_text(size=10,face="bold"),
+           axis.title=element_text(size=15,face="bold"),legend.position = "bottom")

@@ -1,0 +1,105 @@
+pp <- read.csv("sc_patho_rel.csv",header = T,row.names = 1)
+group<-read.csv("antismash_heatmap_group.csv",header = T,row.names = 1)
+r_pp <- subset(pp,group$Compartment=="Rhizosphere")
+
+ggplot(r_pp,aes(log(NRPS+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = 1,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(NRPS express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_log_NRPS_patho_rel.pdf",width = 5, height =5)
+
+
+ggplot(r_pp,aes(log(NRPS_Like+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -8,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(NRPS_like express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_log_NRPS_like_patho_rel.pdf",width = 5, height =5)
+
+ggplot(r_pp,aes(log(T1PKS+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -8,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(T1PKS express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_log_T1PKS_patho_rel.pdf",width = 5, height =5)
+
+
+ggplot(r_pp,aes(log(T3PKS+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -7.5,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(T3PKS express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_log_T3PKS_patho_rel.pdf",width = 5, height =5)
+
+ggplot(r_pp,aes(log(terpene+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -0.5,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(Terpene express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_log_terpene_patho_rel.pdf",width = 5, height =5)
+
+
+ggplot(r_pp,aes(log(arylpolyene+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -7.5,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(Arylpolyene express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_arylpolyene_patho_rel.pdf",width = 5, height =5)
+
+ggplot(r_pp,aes(log(RiPP.like+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -8,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(RiPP.like express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_RiPP.like_patho_rel.pdf",width = 5, height =5)
+
+ggplot(r_pp,aes(log(Indole+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -7,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(Indole express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_Indole_patho_rel.pdf",width = 5, height =5)
+
+ggplot(r_pp,aes(log(Sid1+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -7,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(Sid1 express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_Sid1_patho_rel.pdf",width = 5, height =5)

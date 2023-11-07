@@ -1,0 +1,61 @@
+setwd("E:/博后/高粱转录组微生物组/陈沛霖-病原菌/病原真菌/a最终图/FIG2/SEM")
+metablome <- read.csv("root_fungi(OTU5_pathogen)_metabosome.csv",header = T,row.names = 1)
+Drought <- read.csv("drought_index.csv",header = T,row.names = 1)
+
+metablome <-  as.data.frame(metablome[row.names(metablome)%in%row.names(Drought),])
+Drought <-  as.data.frame(Drought[row.names(Drought)%in%row.names(metablome),])
+
+Transcript <- read.csv("root_normCounts.csv",header = T,row.names = 1)
+Transcript_group <- read.csv("root_normcount_meta.csv",header = T,row.names = 1)
+Transcript <- t(Transcript)
+rownames(Transcript_group) <- Transcript_group$Barcode
+Transcript <- Transcript[order(row.names(Transcript)),]
+Transcript_group <-Transcript_group[order(row.names(Transcript_group)),]
+row.names(Transcript)==row.names(Transcript_group)
+row.names(Transcript) <- Transcript_group$CorTreatment
+Transcript_sem <-  as.data.frame(Transcript[row.names(Transcript)%in%row.names(metablome),])
+
+Transcript_sem <- Transcript_sem[order(row.names(Transcript_sem)),]
+metablome <- metablome[order(row.names(metablome)),]
+Drought <- Drought[order(row.names(Drought)),]
+
+library(vegan)
+Trans_hel <- decostand(Transcript_sem, method = 'hellinger')
+Trans_bray <- vegdist(Trans_hel, method = 'bray')
+Trans_pcoa <- cmdscale(Trans_bray, k = 2,eig=TRUE)
+Trans_poca_point <- data.frame(Trans_pcoa$points) 
+colnames(Trans_poca_point) <- c('Trans1','Trans2')
+
+meta_hel <- decostand(metablome, method = 'hellinger')
+meta_bray <- vegdist(meta_hel, method = 'bray')
+meta_pcoa <- cmdscale(meta_bray, k = 2,eig=TRUE)
+meta_poca_point <- data.frame(meta_pcoa$points) 
+colnames(meta_poca_point) <- c('metab1','metab2')
+
+
+#meta_poca_point、Trans_poca_point、metablome、Drought
+
+row.names(meta_poca_point)==row.names(metablome)
+row.names(Drought)==row.names(metablome)
+row.names(Trans_poca_point)==row.names(metablome)
+
+SEM <- cbind(meta_poca_point,Trans_poca_point,Drought,metablome)
+SEM1 <- SEM[,c('Trans1','metab1','Percent.available.soil.moisture.depletion','Week','ethanolamine.','alpha.ketoglutaric.acid','beta.cyano.L.alanine','L.tryptophan','OTU5','Pathogen')]
+colnames(SEM1) <- c('Transcript','metablome','Drought','Week','ethanolamine','ketoglutaric_acid','cyano_alanine','tryptophan','OTU5','Pathogen')
+
+library(lavaan)
+library(semPlot)
+
+model<-'
+Transcript~Drought+Week
+ethanolamine~Drought+Transcript+Week
+tryptophan~Transcript
+OTU5~ethanolamine+Drought+tryptophan+Week
+Pathogen~Drought+OTU5+tryptophan+Week
+'
+fit<-sem(model = model,data = SEM1,sample.nobs = 60)
+semPaths(fit,'std',layout = "tree2",sizeMan = 10,sizeLat = 10)
+
+fitMeasures(fit,c("chisq","df","pvalue","gfi","cfi","rmr","srmr","rmsea"))
+
+summary(fit, standardized = TRUE, fit.measures = TRUE, rsquare = TRUE)

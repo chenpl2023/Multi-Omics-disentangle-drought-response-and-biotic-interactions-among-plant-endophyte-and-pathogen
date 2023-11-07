@@ -1,0 +1,99 @@
+circles <- function(strain){
+  a <- paste0("E:/陈沛霖-病原菌/病原真菌/a最终图/FIG2/MAG/",strain)
+  setwd(a)
+  library(circlize)
+  library(ComplexHeatmap)
+  library(grid)
+  contig1 <- read.csv("contig.csv",header = T)
+  gene1 <- read.csv("gene.csv",header = T)
+  antismash <- read.csv("antismash.csv",header = T)
+  
+  pdf('circlize2.pdf', width = 8, height = 8)
+  circle_size = unit(1, 'snpc')
+  circos.par(gap.degree = 0.05, start.degree = 90)
+  
+  #染色体区域plotType = c('axis', 'labels')染色体外圈label和刻度
+  circos.genomicInitialize(contig1, plotType = c(), major.by = 1000,track.height = 0.05)
+  
+  circos.genomicTrackPlotRegion(
+    contig1, track.height = 0.05, stack = TRUE, bg.border = NA,
+    panel.fun = function(region, value, ...) {
+      circos.genomicRect(region, value, col = '#F6C915', border = NA, ...)
+    } )
+  
+  #sample1 SNV circos.text ''可写名字
+  #color_assign <- colorRamp2(breaks = c(1, 2, 3, 4, 5, 6, 7, 8), color = c('#BC80BD', '#FDB462', '#80B1D3', '#FB8072', '#8DD3C7', '#FFFFB3', 'red', 'blue'))
+  
+  circos.genomicTrackPlotRegion(
+    gene1, track.height = 0.1, stack = TRUE, bg.border = NA,
+    panel.fun = function(region, value, ...) {
+      circos.genomicRect(region, value, col = 'blue', border = NA, ...)
+      xlim = CELL_META$xlim
+      ylim = CELL_META$ylim
+      circos.text(mean(xlim), mean(ylim), '', cex = 0, col = 'black', facing = 'inside', niceFacing = TRUE)
+    } )
+  
+  circos.genomicTrackPlotRegion(
+    antismash, track.height = 0.1, stack = TRUE, bg.border = NA,
+    panel.fun = function(region, value, ...) {
+      circos.genomicRect(region, value, col = 'green', border = NA, ...)
+      xlim = CELL_META$xlim
+      ylim = CELL_META$ylim
+      circos.text(mean(xlim), mean(ylim), '', cex = 0, col = 'black', facing = 'inside', niceFacing = TRUE)
+    } )
+  
+  cazy <- read.csv("cazy.csv",header = T)
+  circos.genomicTrackPlotRegion(
+    cazy, track.height = 0.1, stack = TRUE, bg.border = NA,
+    panel.fun = function(region, value, ...) {
+      circos.genomicRect(region, value, col = 'red', border = NA, ...)
+      xlim = CELL_META$xlim
+      ylim = CELL_META$ylim
+      circos.text(mean(xlim), mean(ylim), '', cex = 0, col = 'black', facing = 'inside', niceFacing = TRUE)
+    } )
+  
+  labe <- read.csv("CE.csv",header = T)
+  circos.genomicLabels(labe, labels.column = 4, side = "inside")
+  
+  pushViewport(viewport(x = 0.5, y = 0.5))
+  
+  upViewport()
+  
+  circos.clear()
+  dev.off()
+  
+}
+
+circles("A3.1556")
+circles("A3.1579")
+circles("A3.2854")
+circles("A3.2857")
+circles("A3.2858")
+circles("A3.2859")
+circles("A3.2862")
+circles("A3.3503")
+circles("A3.15288")
+circles("MAG")
+
+setwd("/Pangenome")
+library(ComplexHeatmap)
+library(circlize)
+library(ggplot2)
+gene <- read.csv("pan_heatmap_11.21.csv",header = T,row.names = 1)
+gene1<-gene[,-(1:2)]
+gene1 <- t(gene1)
+col_fun <- colorRamp2(c(0, 1), c("orange","darkgreen"))
+
+ha1 <- rowAnnotation(Total_clusters = anno_barplot(rowSums(gene1), width = unit(1, "cm"),axis_param = list(at=c("0","10000","20000"),side = "bottom", labels_rot = 45,labels = c("0", "10", "20"),gp = gpar(fontsize = 4)   )),annotation_name_gp = gpar(fontsize = 4))
+
+column_ha = HeatmapAnnotation(Metagenome = anno_barplot(log(gene$Metagenome_count+1),height = unit(0.5, "cm"),axis_param = list(gp = gpar(fontsize = 4))),Metatranscriptome=anno_barplot(log(gene$Metatrans_count+1),height = unit(0.5, "cm"),axis_param = list(gp = gpar(fontsize = 4))),annotation_name_gp = gpar(fontsize = 4))
+
+heat<-Heatmap(gene1,cluster_rows = FALSE,cluster_columns = FALSE,row_names_side = c("left"),col = col_fun,show_column_names = FALSE,top_annotation = column_ha,row_names_gp = gpar(fontsize = 8),show_heatmap_legend = FALSE) #heatmap_legend_param = list(title='Detectable gene',direction = "horizontal"))
+heatmap11 <- heat+ha1
+
+lgd_list = list(Legend(at = c(0,1),labels = c("None","Detected"),legend_gp = gpar(fill = c("orange","darkgreen")),title = "Gene cluster", direction = "horizontal",title_position = "leftcenter", nrow = 1,  legend_width = unit(2, "cm")))
+
+p3 <- draw(heatmap11,annotation_legend_list = lgd_list, heatmap_legend_side = "bottom",annotation_legend_side = "bottom")
+pdf("pangenome_heatmap_2023.4.12.pdf",width = 4, height =4)
+print(p3)
+dev.off()

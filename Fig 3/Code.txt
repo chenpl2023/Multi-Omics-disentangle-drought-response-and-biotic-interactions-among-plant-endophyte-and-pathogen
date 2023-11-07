@@ -1,0 +1,176 @@
+#random forest
+setwd("E:/博后/高粱转录组微生物组/陈沛霖-病原菌/病原真菌/代谢组/根际")
+library(tidyverse)
+library("randomForest")
+library("rfUtilities")
+library("rfPermute")
+pp <- read.csv("Rhizos_fungi(OTU5_pathogen)_metabosome.csv",header = T,row.names = 1)
+pp_OTU5 <- pp[,-1]
+set.seed(123)
+richness_rf <- randomForest(OTU5 ~ ., data= pp_OTU5, importance=TRUE,proximity=TRUE)
+richness_rf
+set.seed(123)
+richness_perm <- rf.significance(richness_rf, pp_OTU5[,-1], nperm=99, ntree=501)
+richness_perm
+richness_rfP<- rfPermute(OTU5 ~ ., data = pp_OTU5, ntree = 500, na.action = na.omit, nrep = 100,num.cores = 1)
+richness_dat <- importance(richness_rfP, sort.by = NULL, decreasing = TRUE)
+write.csv(richness_dat,"random_rhizos_otu5.csv")
+
+pp_pathgen <- pp[,-2]
+set.seed(123)
+richness_rf <- randomForest(Pathogen ~ ., data= pp_pathgen, importance=TRUE,proximity=TRUE)
+richness_rf
+set.seed(123)
+richness_perm <- rf.significance(richness_rf, pp_pathgen[,-1], nperm=99, ntree=501)
+richness_perm
+richness_rfP<- rfPermute(Pathogen ~ ., data = pp_pathgen, ntree = 500, na.action = na.omit, nrep = 100,num.cores = 1)
+richness_dat <- importance(richness_rfP, sort.by = NULL, decreasing = TRUE)
+write.csv(richness_dat,"random_rhizos_Pathogen.csv")
+
+pp <- read.csv("root_fungi(OTU5_pathogen)_metabosome.csv",header = T,row.names = 1)
+pp_OTU5 <- pp[,-1]
+set.seed(123)
+richness_rf <- randomForest(OTU5 ~ ., data= pp_OTU5, importance=TRUE,proximity=TRUE)
+richness_rf
+set.seed(123)
+richness_perm <- rf.significance(richness_rf, pp_OTU5[,-1], nperm=99, ntree=501)
+richness_perm
+richness_rfP<- rfPermute(OTU5 ~ ., data = pp_OTU5, ntree = 500, na.action = na.omit, nrep = 100,num.cores = 1)
+richness_dat <- importance(richness_rfP, sort.by = NULL, decreasing = TRUE)
+write.csv(richness_dat,"random_root_otu5.csv")
+
+pp_pathgen <- pp[,-2]
+set.seed(123)
+richness_rf <- randomForest(Pathogen ~ ., data= pp_pathgen, importance=TRUE,proximity=TRUE)
+richness_rf
+set.seed(123)
+richness_perm <- rf.significance(richness_rf, pp_pathgen[,-1], nperm=99, ntree=501)
+richness_perm
+richness_rfP<- rfPermute(Pathogen ~ ., data = pp_pathgen, ntree = 500, na.action = na.omit, nrep = 100,num.cores = 1)
+richness_dat <- importance(richness_rfP, sort.by = NULL, decreasing = TRUE)
+write.csv(richness_dat,"random_root_Pathogen.csv")
+
+#barplot
+setwd("E:/博后/高粱转录组微生物组/陈沛霖-病原菌/病原真菌/a最终图/FIG2/代谢相关性")
+library(reshape2)
+library(ggplot2)
+metabolome <-read.csv("randomFores_otu5_root_rhizosphere.csv")
+dfm = melt(metabolome, id.vars = "Group")
+
+ggplot(dfm, aes(y = factor(variable), x = value, fill=Group))+geom_bar(stat ="identity", width=0.9, position= "dodge")+labs(y = NULL, x = "IncMSE for A.persicinum amplicon (%)")+theme_bw()+scale_fill_manual(values=c("blue","red"))+theme(strip.text = element_text(size = 12,face="bold"),panel.spacing = unit(0, "lines"),  legend.title = element_text(colour="black", size=10, face="bold"), legend.text = element_text(colour="black", size=10,face="bold"),axis.text=element_text(size=12),axis.text.x = element_text(hjust=1, vjust=1),axis.title=element_text(size=12,face="bold"),legend.position = c(0.8,0.9))
+ggsave("new_randomFores_otu5_root_rhizosphere.pdf",width = 6, height =9)
+
+metabolome <-read.csv("randomFores_pathogen_root_rhizosphere.csv")
+dfm = melt(metabolome, id.vars = "Group")
+
+ggplot(dfm, aes(y = factor(variable), x = value, fill=Group))+geom_bar(stat ="identity", width=0.9, position= "dodge")+labs(y = NULL, x = "IncMSE for pathogenic fungi (%)")+theme_bw()+scale_fill_manual(values=c("blue","red"))+theme(strip.text = element_text(size = 12,face="bold"),panel.spacing = unit(0, "lines"),  legend.title = element_text(colour="black", size=10, face="bold"), legend.text = element_text(colour="black", size=10,face="bold"),axis.text=element_text(size=12),axis.text.x = element_text(hjust=1, vjust=1),axis.title=element_text(size=12,face="bold"),legend.position = c(0.8,0.9))
+
+ggsave("new_randomFores_pathogen_root_rhizosphere.pdf",width = 6, height =9)
+
+
+#correlation analysis
+
+setwd("E:/陈沛霖-病原菌/病原真菌/a最终图/FIG2/代谢相关性")
+root_metabolome <-read.csv("root_fungi(OTU5_pathogen)_metabosome.csv")
+rhizos_metabolome <-read.csv("Rhizos_fungi(OTU5_pathogen)_metabosome.csv")
+
+car_otu_root <- names(root_metabolome) %in%c("OTU5","alpha.ketoglutaric.acid","ethanolamine.","beta.cyano.L.alanine","L.tryptophan")
+root_otu5_ketoglutaric <- root_metabolome[car_otu_root]
+root_otu5_ketoglutaric['group'] <- 'Root'
+
+car_otu_rhizos <- names(rhizos_metabolome)%in%c("OTU5","alpha.ketoglutaric.acid","ethanolamine.","beta.cyano.L.alanine","L.tryptophan")
+rhizos_otu5_ketoglutaric <- rhizos_metabolome[car_otu_rhizos]
+rhizos_otu5_ketoglutaric['group'] <- 'Rhizosphere'
+
+car_otu_all <- rbind(root_otu5_ketoglutaric,rhizos_otu5_ketoglutaric)
+
+car_otu_all$group <- factor(car_otu_all$group,levels = c("Root","Rhizosphere"))
+
+library(tidyverse)
+library(ggtext)
+library(hrbrthemes)
+library(wesanderson)
+library(RColorBrewer)
+library(ggsci)
+
+new_car_otu_all <- mutate(car_otu_all, otu5_group = str_c(OTU5, group, "A.persicinum", sep = "_"))
+new_car_otu_all <- new_car_otu_all[,-c(1,6)]
+new_car_otu_all <- gather(new_car_otu_all,key = "metabolites_type",
+       value = "Metabolites_content",
+       1:4)
+new_car_otu_all <- separate(new_car_otu_all,otu5_group,into=c("Amplicon_content","compartment","fungal_type"),sep= "_",remove = TRUE)
+
+car_pathogen_root <- names(root_metabolome) %in%c("Pathogen","alpha.ketoglutaric.acid","ethanolamine.","DL.4.hydroxymandelic.acid","glycine")
+root_patho <- root_metabolome[car_pathogen_root]
+root_patho['group'] <- 'Root'
+
+car_pathogen_rhizos <- names(rhizos_metabolome)%in%c("Pathogen","alpha.ketoglutaric.acid","ethanolamine.","DL.4.hydroxymandelic.acid","glycine")
+rhizos_patho <- rhizos_metabolome[car_pathogen_rhizos]
+rhizos_patho['group'] <- 'Rhizosphere'
+
+car_patho_all <- rbind(root_patho,rhizos_patho)
+
+car_patho_all$group <- factor(car_patho_all$group,levels = c("Root","Rhizosphere"))
+
+new_patho_otu_all <- mutate(car_patho_all, pathogen_group = str_c(Pathogen, group, "Pathogen", sep = "_"))
+new_patho_otu_all <- new_patho_otu_all[,-c(1,6)]
+new_patho_otu_all <- gather(new_patho_otu_all,key = "metabolites_type",
+                          value = "Metabolites_content",
+                          1:4)
+new_patho_otu_all <- separate(new_patho_otu_all,pathogen_group,into=c("Amplicon_content","compartment","fungal_type"),sep= "_",remove = TRUE)
+
+new_car_otu_all$metabolites_type <- factor(new_car_otu_all$metabolites_type,levels = c("ethanolamine.","L.tryptophan","alpha.ketoglutaric.acid","beta.cyano.L.alanine"))
+new_patho_otu_all$metabolites_type <- factor(new_patho_otu_all$metabolites_type,levels = c("ethanolamine.","alpha.ketoglutaric.acid","DL.4.hydroxymandelic.acid","glycine"))
+
+ggplot(new_car_otu_all,aes(as.numeric(Amplicon_content),Metabolites_content,color=compartment))+geom_point(aes(color=compartment), size = 1, alpha= 0.8)+geom_smooth(se=FALSE,size=1.5, method="loess",aes(color = compartment)) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = 0.25,size=3,fontface='bold') +scale_color_manual(values=c('blue','red'))+
+  facet_grid(metabolites_type~.,scales="free_y")+labs(x="A. persicinum [OTU5] relative abundance",y = "Metabolites content")+ theme_bw()+ theme(strip.text = element_text(size = 15,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=10, face="bold"),
+                    legend.text = element_text(colour="black", size=10, face="bold"),
+                    axis.text=element_text(size=10,face="bold"),
+                    axis.title=element_text(size=10,face="bold"),legend.position = "")
+
+ggsave("otu5_Metabolites_root_rhizosphere.pdf",width = 3, height =9)
+
+ggplot(new_patho_otu_all,aes(as.numeric(Amplicon_content),Metabolites_content,color=compartment))+geom_point(aes(color=compartment), size = 1, alpha= 0.8)+geom_smooth(se=FALSE,size=1.5, method="loess",aes(color = compartment)) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = 0.35,size=3,fontface='bold') +scale_color_manual(values=c('blue','red'))+
+  facet_grid(metabolites_type~.,scales="free_y")+labs(x="Pathogenic fungi relative abundance",y = "Metabolites content")+ theme_bw()+ theme(strip.text = element_text(size = 15,face="bold"),
+                                                                                                                                     panel.spacing = unit(0, "lines"),
+                                                                                                                                     legend.title = element_text(colour="black", size=10, face="bold"),
+                                                                                                                                     legend.text = element_text(colour="black", size=10, face="bold"),
+                                                                                                                                     axis.text=element_text(size=10,face="bold"),
+                                                                                                                                     axis.title=element_text(size=10,face="bold"),legend.position = "")
+
+ggsave("patho_Metabolites_root_rhizosphere.pdf",width = 3, height =9)
+
+#boxplot Growth.inhibition.index
+library(ggplot2)
+library(ggsci)
+library(tidyverse)
+library(multcompView)
+
+pp <- read.csv("Growth inhibition index_META_1.csv",header = T,row.names = 1)
+anova <- aov(Growth.inhibition.index~Treat,data=pp)
+tukey <- TukeyHSD(anova)
+cld <- multcompLetters2(anova,tukey)
+
+dt <- pp %>% group_by(Treat)%>%
+  summarise(w=mean(Growth.inhibition.index), sd = sd(Growth.inhibition.index))%>% 
+  left_join(.,as.data.frame.list(cld$Treat) %>% select(1) %>% 
+              rownames_to_column("Treat"))
+
+pp1 <- merge(pp,dt,by= "Treat")
+
+ggplot(data = pp1) + geom_boxplot(aes(x = Treat, y = Growth.inhibition.index,fill=Group))+ ylim (0, 0.7)+scale_fill_aaas()+
+  geom_text(aes(label = Letters,x = Treat, y = w + sd), vjust = -0.5)+
+  theme_bw()+ theme(strip.text = element_text(size = 6,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=12,face="bold"),axis.text.x = element_text(angle=45, hjust=1),legend.position = "bottom")
+
+ggsave("Meta_part_Growth_inhibition_index.pdf",width = 6, height =4)
+
+

@@ -1,0 +1,231 @@
+#BGC barplot
+setwd("E:/陈沛霖-病原菌/病原真菌/a最终图/FIG3")
+library(ggplot2)
+library(reshape2)
+gene<-read.csv("antismash.csv")
+dfm = melt(gene, id.vars = "Group")
+ggplot(dfm, aes(x = factor(variable), y = value, fill=Group)) +
+  geom_bar(stat='identity')+  
+  labs(x="",y = "Number of secondary metabolite gene clusters")+scale_fill_manual(name="Clusters",values=c("Arylpolyene"="#997C00","Indole"="#FFEEDD","NRPS"="#006000","NRPS-like"="#00EC00","RiPP-like"="#66B3FF","T1PKS"="#FF8000","T3PKS"="#FFD1A4","Terpene"="#9F4D95"))+ theme_bw()+theme(strip.text = element_text(size = 8,face="bold"), panel.spacing = unit(0, "lines"), legend.title = element_text(colour="black", size=6, face="bold"),legend.text = element_text(colour="black", size=6),axis.text=element_text(size=8,face="bold"),axis.title=element_text(size=10,face="bold"),legend.position = " ",axis.text.x =element_text(angle=90, hjust=1, vjust=.5))
+
+ggsave("antismash_number_bar.pdf",width = 5, height =5)
+
+#BGC expression heatmap 
+setwd("E:/博后/高粱转录组微生物组/陈沛霖-病原菌/病原真菌/fungal-OTU5/Pan-genome/GBK_Antismash")
+library(ComplexHeatmap)
+data <- read.csv("antismash_heatmap1.csv",header = T,row.names = 1)
+group <- read.csv("antismash_heatmap_group.csv",header = T,row.names = 1)
+data1 <- data[,-1]
+data1<-t(data1)
+data1_avg<-aggregate(data1,by=list(group$Goup), mean)
+row.names(data1_avg)<-data1_avg$Group.1
+data1_avg <- data1_avg[,-1]
+data1_avg <- t(data1_avg)
+
+data1_avg <- data1_avg[,order(colnames(data1_avg))]
+
+
+group_avg <- unique(group)
+row.names(group_avg) <- group_avg$Goup
+
+group_avg <- group_avg[order(row.names(group_avg)),]
+
+col_fun<-colorRampPalette(c( "white", "darkgreen"))(100)
+
+row_anno <- rowAnnotation(Type=data$Type,col=list(Type=c("Arylpolyene"="#997C00","Indole"="#FFEEDD","NRPS"="#006000","NRPS-like"="#00EC00","RiPP-like"="#66B3FF","T1PKS"="#FF8000","T3PKS"="#FFD1A4","Terpene"="#9F4D95")),annotation_legend_param = list(Type = list(nrow = 1)))
+
+col_anno1 <- columnAnnotation(vec = anno_text(group_avg$Week))
+
+col_anno <- columnAnnotation(TotalExpress = anno_barplot(colSums(data1_avg), width = unit(2, "cm")),Treat=factor(group_avg$Treat,levels = c("CON", "PRE", "POS")), col = list(Treat=c("CON"="red","PRE"="blue","POS"="black")), gap = unit(1, "mm"),annotation_legend_param = list(Treat = list(nrow = 1)))
+
+genelist <- c("Acremonium_persicinum_MAG|g5839.t1","Acremonium_persicinum3_15288|g6872.t1","Acremonium_persicinum3_15288|g7244.t1")
+index <- which(rownames(data1_avg) %in% genelist)
+
+
+ha = rowAnnotation(foo = anno_mark(at = index, labels = c('Indole1','Indole2','Sid1'),labels_gp = gpar(fontsize = 15,face="bold")))
+
+heat1<-Heatmap(data1_avg,col = col_fun,cluster_columns = FALSE, cluster_rows = T, show_row_dend = F,show_row_names= FALSE,show_column_names = FALSE,left_annotation = row_anno,bottom_annotation= col_anno1,top_annotation= col_anno,column_split = group_avg$Compartment,border = T,right_annotation = ha,heatmap_legend_param = list(direction = "horizontal"))
+
+p3 <- draw(heat1, heatmap_legend_side = "bottom", 
+     annotation_legend_side = "bottom",merge_legend = TRUE)
+
+pdf("New_SC_heatmap1.pdf",width = 8, height =5)
+print(p3)
+
+#correlation analysis
+setwd("E:/博后/高粱转录组微生物组/陈沛霖-病原菌/病原真菌/a最终图/FIG3")
+pp <- read.csv("sc_patho_rel.csv",header = T,row.names = 1)
+group<-read.csv("antismash_heatmap_group.csv",header = T,row.names = 1)
+r_pp <- subset(pp,group$Compartment=="Rhizosphere")
+
+library(tidyverse)
+library(ggtext)
+library(hrbrthemes)
+library(wesanderson)
+library(RColorBrewer)
+library(ggsci)
+
+ggplot(r_pp,aes(log(Total_SC_express+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = 1,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(Expression of total BGCs)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_log_sc_patho_rel.pdf",width = 5, height =5)
+
+res <- read.csv("metabolite in vivo_1.csv",header = T,row.names = 1)
+library(ggplot2)#绘图包
+library(ggpubr)#基于ggplot2的可视化包，主要用于绘制符合出版要求的图形
+library(ggsignif)#用于P值计算和显著性标记
+library(tidyverse)#数据预处理
+library(ggprism)
+
+res$Add <- factor(res$Add, level=c("DMSO", "200ng/6ul"))
+p1 <- ggplot(res,aes(x=Add,y=Length))+#指定数据
+  stat_boxplot(geom = "errorbar", width=0.1,size=0.8)+#添加误差线,注意位置，放到最后则这条先不会被箱体覆盖
+  geom_boxplot(size=0.8)+
+  geom_jitter(width = 0.2)+ geom_signif(comparisons = list(c("DMSO","200ng/6ul")
+                                                          ),# 设置需要比较的组
+                                        map_signif_level = T, #是否使用*显示
+                                        test = t.test, ##计算方法
+                                        y_position = c(0.48),#图中横线位置设置
+                                        tip_length = c(c(0.015,0.015)),#横线下方的竖线设置
+                                        size=0.8,color="black")+
+  labs(x=NULL,y = "Length of lesion (cm)")+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=8, face="bold"),
+                    legend.text = element_text(colour="black", size=8, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+
+ggsave("metabolite in vivo.pdf",,width = 5, height =5)
+
+
+data1 <- read.csv("metabolite in vitro.csv",header = T)
+library(wesanderson)
+library(RColorBrewer)
+library(ggsci)
+library(vegan)
+library(ggplot2)
+p1<- ggplot(data1,aes(Concentration.ug.ml.,Index...))+geom_jitter(aes(color=Medium), size = 3,width = 1)+
+  geom_smooth(data = subset(data1, data1$Medium == "Rice"),se=FALSE,size=1,method="lm", alpha= 0.4,col='blue')+
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(data = subset(data1, data1$Medium == "Rice"),aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = 21,label.y = 50,size=5,fontface='bold',col='blue') +
+  geom_smooth(data = subset(data1, data1$Medium == "TSB"),se=FALSE,size=1,method="lm", alpha= 0.4,col='black')+
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(data = subset(data1, data1$Medium == "TSB"),aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = 21,label.y = 44,size=5,fontface='bold',col='black') +
+  geom_smooth(data = subset(data1, data1$Medium == "Rice&TSB"),se=FALSE,size=1,col='red',method="lm", alpha= 0.4)+
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(data = subset(data1, data1$Medium == "Rice&TSB"),aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = 21,label.y = 47,size=5,fontface='bold',col='red') +
+  labs(x="Concentration of HA (ug/ml)",y = "Growth inhibition (%)")+
+  scale_color_manual(values=c("blue","red","black"))+
+  guides(color=guide_legend(title= NULL,bycol = T,ncol = 1))+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=8,face="bold"),
+                    axis.title=element_text(size=12,face="bold"),legend.position = c(0.15,0.88))
+
+ggsave("metabolite in vitro.pdf",,width = 5, height =5)
+
+ggplot(r_pp,aes(log(NRPS+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = 1,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(NRPS express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_log_NRPS_patho_rel.pdf",width = 5, height =5)
+
+
+ggplot(r_pp,aes(log(NRPS_Like+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -8,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(NRPS_like express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_log_NRPS_like_patho_rel.pdf",width = 5, height =5)
+
+ggplot(r_pp,aes(log(T1PKS+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -8,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(T1PKS express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_log_T1PKS_patho_rel.pdf",width = 5, height =5)
+
+
+ggplot(r_pp,aes(log(T3PKS+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -7.5,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(T3PKS express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_log_T3PKS_patho_rel.pdf",width = 5, height =5)
+
+ggplot(r_pp,aes(log(terpene+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -0.5,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(Terpene express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_log_terpene_patho_rel.pdf",width = 5, height =5)
+
+
+ggplot(r_pp,aes(log(arylpolyene+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -7.5,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(Arylpolyene express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_arylpolyene_patho_rel.pdf",width = 5, height =5)
+
+ggplot(r_pp,aes(log(RiPP.like+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -8,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(RiPP.like express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_RiPP.like_patho_rel.pdf",width = 5, height =5)
+
+ggplot(r_pp,aes(log(Indole+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -7,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(Indole express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_Indole_patho_rel.pdf",width = 5, height =5)
+
+ggplot(r_pp,aes(log(Sid1+0.0001),Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
+  ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = -7,col='red',size=5,fontface='bold')+
+  theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                    panel.spacing = unit(0, "lines"),
+                    legend.title = element_text(colour="black", size=12, face="bold"),
+                    legend.text = element_text(colour="black", size=12, face="bold"),
+                    axis.text=element_text(size=12,face="bold"),
+                    axis.title=element_text(size=15,face="bold"),legend.position = "bottom",plot.title = element_text(size=16,hjust=0.5,face="bold"))+labs(title = paste(""),x="Log(Sid1 express level)",y="Pathogenic fungal relative abundance")
+
+ggsave("liner_Sid1_patho_rel.pdf",width = 5, height =5)

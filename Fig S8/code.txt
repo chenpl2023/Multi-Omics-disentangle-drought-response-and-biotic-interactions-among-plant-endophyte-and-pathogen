@@ -1,0 +1,38 @@
+setwd("E:/博后/高粱转录组微生物组/陈沛霖-病原菌/病原真菌/a最终图/FIG1")
+library(tidyverse)
+library(ggtext)
+library(hrbrthemes)
+library(wesanderson)
+library(RColorBrewer)
+library(ggsci)
+pp <- read.csv("pathogen-OTU5-cor.csv",header = T,row.names = 1)
+pp$Treatment<- factor(pp$Treatment, levels=c("Control", "Pre_flowering drought", "Post_flowering drought"))
+pp$Habitat <- factor(pp$Habitat, levels = c("Root", "Rhizosphere", "Soil"))
+
+
+ggplot(pp,aes(OTU5,Pathogen,color=Batch3)) +geom_point()+facet_grid(Habitat~Treatment,scales="free")+labs(x="OTU5",y = "Pathogen")+scale_color_manual(values=c("#D05146","#DBC7B5", "#6091AB"))+
+    theme_bw()+ theme(strip.text = element_text(size = 12,face="bold"),
+                      panel.spacing = unit(0, "lines"),
+                      legend.title = element_text(colour="black", size=12, face="bold"),
+                      legend.text = element_text(colour="black", size=12, face="bold"),
+                      axis.text=element_text(size=8,face="bold"),
+                      axis.title=element_text(size=12,face="bold"),legend.position = "bottom")
+
+ggsave("CorrNEW_2022.11.25.Batch3.2022.pdf",width = 9, height =6)
+
+library(MuMIn)
+library(nlme) 
+lme_pre_root<-lme(OTU5~Pathogen,random=~1|Batch3,data=subset(pp,Habitat=="Root"&Treatment=="Pre_flowering drought"), control=lmeControl(opt = "optim"))
+summary(lme_pre_root)
+anova(lme_pre_root)
+r.squaredGLMM(lme_pre_root)
+
+lme_con_root<-lme(OTU5~Pathogen,random=~1|Batch3,data=subset(pp,Habitat=="Root"&Treatment=="Control"), control=lmeControl(opt = "optim"))
+summary(lme_con_root)
+anova(lme_con_root)
+r.squaredGLMM(lme_con_root)
+
+lme_pos_root<-lme(OTU5~Pathogen,random=~1|Batch3,data=subset(pp,Habitat=="Root"&Treatment=="Post_flowering drought"), control=lmeControl(opt = "optim"))
+summary(lme_pos_root)
+anova(lme_pos_root)
+r.squaredGLMM(lme_pos_root)

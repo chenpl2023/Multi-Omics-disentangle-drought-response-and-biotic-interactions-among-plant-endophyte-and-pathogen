@@ -1,0 +1,55 @@
+setwd("E:/陈沛霖-病原菌/病原真菌/fungal-OTU5/Pan-genome/Fig/go_cog")
+library(topGO)
+library(stringr)
+gene2GO_map<-readMappings("PANGO.map")
+res<-read.csv("DOWN.csv",header=T)
+genelist<-res$DOWN
+names(genelist)<-res$gene_id
+genelist <- as.factor(genelist)
+
+Godata_BP<-new("topGOdata",ontology = "BP",allGenes=genelist,annot=annFUN.gene2GO,gene2GO=gene2GO_map)
+resultFis_BP<-runTest(Godata_BP,algorithm = "classic",statistic = "fisher")
+sig.tab_BP <- GenTable(Godata_BP,Fis = resultFis_BP,topNodes=1000)
+sig.tab_BP['Ontology'] <- 'BP'
+
+Godata_MF<-new("topGOdata",ontology = "MF",allGenes=genelist,annot=annFUN.gene2GO,gene2GO=gene2GO_map)
+resultFis_MF<-runTest(Godata_MF,algorithm = "classic",statistic = "fisher")
+sig.tab_MF <- GenTable(Godata_MF,Fis = resultFis_MF,topNodes=1000)
+sig.tab_MF['Ontology'] <- 'MF'
+
+Godata_CC<-new("topGOdata",ontology = "CC",allGenes=genelist,annot=annFUN.gene2GO,gene2GO=gene2GO_map)
+resultFis_CC<-runTest(Godata_CC,algorithm = "classic",statistic = "fisher")
+sig.tab_CC <- GenTable(Godata_CC,Fis = resultFis_CC,topNodes=1000)
+sig.tab_CC['Ontology'] <- 'CC'
+
+sig.tab_ALL <- rbind(sig.tab_BP,sig.tab_MF,sig.tab_CC)
+
+library(reshape2)
+library(dplyr)
+sig.tab_ALL_0.01 = sig.tab_ALL %>% filter(Fis<0.01)
+library(ggplot2)
+sig.tab_ALL_0.01$Fis <- as.numeric(sig.tab_ALL_0.01$Fis)
+sig.tab_ALL_0.01$bi <- sig.tab_ALL_0.01$Significant/sig.tab_ALL_0.01$Annotated
+
+sig.tab_ALL_0.01$Term <-  str_to_sentence(sig.tab_ALL_0.01$Term)#首字母大写
+
+sig.tab_ALL_0.01$Term <- factor(as.integer(rownames(sig.tab_ALL_0.01)),labels=sig.tab_ALL_0.01$Term)
+
+#定义term颜色
+col_function <- function(x){
+  col <- rep('black', length(x))
+  one <- which(x %in% c('BP'))
+  two <- which(x %in% c('MF'))
+  three <- which(x %in% c('CC'))
+  col[one] <- '#0074b3'
+  col[two] <- '#f47720'
+  col[three] <- '#459943'
+  col
+  }
+
+y_text_color <- col_function(sig.tab_ALL_0.01$Ontology)
+
+ggplot(sig.tab_ALL_0.01,aes(Expected,Term))+geom_point(aes(size=Significant,color=-log10(Fis)))+scale_color_gradient(high="red",low = "blue")+theme_test(base_size = 10,base_rect_size = 1)+labs(x="Expected number significantly up regulated gene",y="", title="Functional enrichment of up regulated genes")+scale_y_discrete(labels = c(sig.tab_ALL_0.01$Term))+geom_text(data=sig.tab_ALL_0.01,aes(label = Significant,size=Significant))+theme(axis.text.y = element_text(color = (y_text_color)),panel.grid.major=element_line(colour="gray85",linetype = "dashed"))
+
+#write.csv(sig.tab_ALL_0.01,"down_sig.tab_ALL_0.01.csv")
+ggsave("Down_GOenrich_1.pdf",width = 6, height =20)
