@@ -29,7 +29,7 @@ ggsave("ethanolamine_rhizos_soil.pdf",,width = 6, height =6)
 data1_rhi <- subset(data1, data1$Compartment=="Rhizosphere")
 
 data_rhi <- subset(data, data$Compartment=="Rhizosphere")
-data_rhi <- data_rhi[which (data_rhi$Total_ethanolamine_express > 0),]
+#data_rhi <- data_rhi[which (data_rhi$Total_ethanolamine_express > 0),]
 
 ggplot(data_rhi,aes(Total_ethanolamine_express,Pathogen_content))+geom_point(aes(), size = 3)+geom_smooth(se=FALSE,size=2.5, method="lm",aes(),col='red',alpha = 0.5) + 
   ggsci::scale_fill_nejm() + ggpubr::stat_cor(aes(label = paste(..r.label..,..p.label.., sep = "~`,`~")),label.x = 300,col='red',size=5,fontface='bold')+
